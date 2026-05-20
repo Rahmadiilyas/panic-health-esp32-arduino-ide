@@ -5,25 +5,23 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// ================= WIFI =================
+
 const char* ssid = "Redmi 13";
 const char* password = "87654321";
 const char* serverName = "http://172.24.27.190:8000/api/readings";
 
-// ================= PIN =================
 const int pulsePin = 32;
 const int mq135Pin = 34;
 const int buzzerPin = 5;
-const int oneWireBus = 4;   // ubah ke 15 jika DS18B20 berhasil di GPIO 15
+const int oneWireBus = 4; 
 
-// ================= LCD =================
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // ================= SENSOR SUHU =================
 OneWire oneWire(oneWireBus);
 DallasTemperature sensors(&oneWire);
 
-// ================= DATA =================
+
 float suhuGlobal = 0;
 float suhuTerakhirValid = 0;
 
@@ -31,7 +29,6 @@ int gasGlobal = 0;
 float bpm = 0;
 int pulseValue = 0;
 
-// ================= TIMER =================
 unsigned long tSend = 0;
 unsigned long tLCD = 0;
 unsigned long tSensor = 0;
@@ -39,21 +36,17 @@ unsigned long tSerial = 0;
 
 int lcdMode = 0;
 
-// ================= BPM STABIL =================
+
 bool pulseDetected = false;
 unsigned long lastBeatTime = 0;
 unsigned long currentBeatTime = 0;
 
-// dari data kamu:
-// bawah sekitar 400 - 1700
-// puncak sekitar 3200
 int thresholdHigh = 2500;
 int thresholdLow  = 1800;
 
 float bpmBuffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 int bpmIndex = 0;
 
-// ================= BATAS ALARM =================
 int batasBpmTinggi = 100;
 float batasSuhuTinggi = 38.0;
 int batasGasBahayaLCD = 850;
@@ -109,7 +102,6 @@ void setup() {
   lcd.clear();
 }
 
-// ================= LOOP =================
 void loop() {
   unsigned long now = millis();
 
@@ -166,7 +158,6 @@ void bacaSuhu() {
   }
 }
 
-// ================= BACA GAS STABIL =================
 void bacaGasStabil() {
   long total = 0;
   int jumlahSample = 10;
@@ -179,7 +170,6 @@ void bacaGasStabil() {
   gasGlobal = total / jumlahSample;
 }
 
-// ================= BACA PULSE / BPM =================
 void bacaPulse() {
   pulseValue = analogRead(pulsePin);
 
@@ -191,9 +181,6 @@ void bacaPulse() {
     if (lastBeatTime > 0) {
       unsigned long beatInterval = currentBeatTime - lastBeatTime;
 
-      // Filter detak manusia normal
-      // 300 ms = 200 BPM
-      // 2000 ms = 30 BPM
       if (beatInterval > 300 && beatInterval < 2000) {
         float bpmNow = 60000.0 / beatInterval;
 
@@ -241,7 +228,6 @@ void bacaPulse() {
   }
 }
 
-// ================= STATUS BPM =================
 String statusBPM() {
   if (bpm == 0) {
     return "NO SIGNAL";
@@ -252,7 +238,6 @@ String statusBPM() {
   }
 }
 
-// ================= STATUS SUHU =================
 String statusSuhu() {
   if (suhuGlobal == 0) {
     return "ERROR";
@@ -263,7 +248,7 @@ String statusSuhu() {
   }
 }
 
-// ================= STATUS GAS =================
+
 String statusGas() {
   if (gasGlobal > batasGasBahayaLCD) {
     return "BAHAYA!";
@@ -272,7 +257,6 @@ String statusGas() {
   }
 }
 
-// ================= SERIAL MONITOR =================
 void tampilSerial() {
   Serial.println("=== DATA SENSOR ===");
 
@@ -335,9 +319,6 @@ void tampilLCD() {
   }
 }
 
-// ================= BUZZER =================
-// ================= BUZZER ALARM SERAM =================
-// ================= BUZZER DETAK JANTUNG =================
 void kontrolBuzzer() {
   bool bahaya = false;
 
@@ -356,10 +337,7 @@ void kontrolBuzzer() {
   if (bahaya) {
     unsigned long waktu = millis();
 
-    // Pola detak jantung: LUB-DUB ... jeda
-    // 0 - 100 ms    : LUB
-    // 120 - 200 ms  : DUB
-    // 200 - 800 ms  : diam
+
     int fase = waktu % 800;
 
     if (fase < 100) {
